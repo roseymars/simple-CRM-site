@@ -1,0 +1,239 @@
+import axios from "axios"
+import { useState, useContext, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import CategoriesContext from "../context"
+
+const TicketPage = ({ editMode }) => {
+  console.log(editMode)
+  const { categories, setCategories } = useContext(CategoriesContext)
+
+  const [formData, setFormData] = useState({
+    status: "Not started",
+    progress: 0,
+    category: categories[0],
+    timestamp: new Date().toISOString()
+  })
+
+  const navigate = useNavigate()
+  let { id } = useParams()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (editMode) {
+      const response = await axios.put(`http://localhost:8000/tickets/${id}`, {
+        data: formData
+      })
+      const success = response.status === 200
+      if (success) {
+        navigate("/")
+      }
+    }
+
+    if (!editMode) {
+      const response = await axios.post("http://localhost:8000/tickets", {
+        formData
+      })
+      const success = response.status === 200
+      if (success) {
+        navigate("/")
+      }
+    }
+  }
+
+  const fetchData = async () => {
+    const response = await axios.get(`http://localhost:8000/tickets/${id}`)
+    setFormData(response.data.data)
+  }
+
+  useEffect(() => {
+    if (editMode) fetchData()
+  }, [])
+
+  const handleChange = (e) => {
+    const val = e.target.value
+    const name = e.target.name
+
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: val
+    }))
+  }
+
+  // const cats = ["test1", "test2"]
+  // console.log(formData)
+
+  return (
+    <div className="ticket">
+      <h1>{editMode ? "Update ticket" : "Create ticket"}</h1>
+      <div className="ticket-container">
+        <form onSubmit={handleSubmit}>
+          <section>
+            <label htmlFor="title">Title</label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              onChange={handleChange}
+              required={true}
+              value={formData.title}
+            />
+            <label htmlFor="description">Description</label>
+            <input
+              id="description"
+              name="description"
+              type="text"
+              onChange={handleChange}
+              required={true}
+              value={formData.description}
+            />
+
+            <label>Category</label>
+            <select
+              name="category"
+              value={formData.category || "New Category"}
+              onChange={handleChange}
+            >
+              {categories?.map((category, _index) => (
+                <option key-={_index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="new-category">New Category</label>
+            <input
+              id="new-category"
+              name="category"
+              type="text"
+              onChange={handleChange}
+              value={formData.category}
+            />
+            <label>Priority</label>
+            <div className="multiple-input-container">
+              <input
+                id="priority-1"
+                name="priority"
+                type="radio"
+                onChange={handleChange}
+                value={1}
+                checked={formData.priority == 1}
+              />
+              <label htmlFor="priority-1">1</label>
+
+              <input
+                id="priority-2"
+                name="priority"
+                type="radio"
+                onChange={handleChange}
+                value={2}
+                checked={formData.priority == 2}
+              />
+              <label htmlFor="priority-2">2</label>
+
+              <input
+                id="priority31"
+                name="priority"
+                type="radio"
+                onChange={handleChange}
+                value={3}
+                checked={formData.priority == 3}
+              />
+              <label htmlFor="priority-3">3</label>
+
+              <input
+                id="priority-4"
+                name="priority"
+                type="radio"
+                onChange={handleChange}
+                value={4}
+                checked={formData.priority == 4}
+              />
+              <label htmlFor="priority-4">4</label>
+
+              <input
+                id="priority-5"
+                name="priority"
+                type="radio"
+                onChange={handleChange}
+                value={5}
+                checked={formData.priority == 5}
+              />
+              <label htmlFor="priority-5">5</label>
+            </div>
+
+            {editMode && (
+              <>
+                <input
+                  type="range"
+                  id="progress"
+                  name="progress"
+                  value={formData.progress}
+                  min="0"
+                  max="100"
+                  onChange={handleChange}
+                />
+                <label htmlFor="progress">Progress</label>
+
+                <label>Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option
+                    selected={formData.status === "Complete"}
+                    value="Complete"
+                  >
+                    Complete
+                  </option>
+                  <option
+                    selected={formData.status === "Not started"}
+                    value="Not started"
+                  >
+                    Not Started
+                  </option>
+                  <option
+                    selected={formData.status === "In progress"}
+                    value="In progress"
+                  >
+                    In Progress
+                  </option>
+                </select>
+              </>
+            )}
+            <input type="submit" />
+          </section>
+          <section>
+            <label htmlFor="owner">Owner</label>
+            <input
+              id="owner"
+              name="owner"
+              type="text"
+              onChange={handleChange}
+              required={true}
+              value={formData.owner}
+            />
+            <label htmlFor="avatar">Avatar</label>
+            <input
+              id="avatar"
+              name="avatar"
+              type="text"
+              onChange={handleChange}
+              required={true}
+              value={formData.avatar}
+            />
+            <div className="img-preview">
+              {" "}
+              {formData.avatar && (
+                <img src={formData.avatar} alt="avatar preview" />
+              )}
+            </div>
+          </section>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default TicketPage
